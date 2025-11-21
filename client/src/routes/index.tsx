@@ -20,6 +20,7 @@ import ShareRoute from './ShareRoute';
 import ChatRoute from './ChatRoute';
 import Search from './Search';
 import Root from './Root';
+import UsageDashboard from '~/components/Admin/Analytics/UsageDashboard';
 
 const AuthLayout = () => (
   <AuthContextProvider>
@@ -110,6 +111,10 @@ export const router = createBrowserRouter(
             {
               path: 'search',
               element: <Search />,
+            },
+            {
+              path: 'admin/analytics',
+              element: <UsageDashboard />,
             },
             {
               path: 'agents',

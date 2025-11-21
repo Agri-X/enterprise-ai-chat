@@ -57,4 +57,7 @@ const transactionSchema: Schema<ITransaction> = new Schema(
   },
 );
 
+transactionSchema.index({ createdAt: -1 });
+transactionSchema.index({ user: 1, createdAt: -1 });
+
 export default transactionSchema;

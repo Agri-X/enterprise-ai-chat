@@ -3,6 +3,7 @@ const assistants = require('./assistants');
 const categories = require('./categories');
 const tokenizer = require('./tokenizer');
 const endpoints = require('./endpoints');
+const analytics = require('./analytics');
 const staticRoute = require('./static');
 const messages = require('./messages');
 const memories = require('./memories');
@@ -44,6 +45,7 @@ module.exports = {
   convos,
   search,
   config,
+  analytics,
   models,
   prompts,
   plugins,

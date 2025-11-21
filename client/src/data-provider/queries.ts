@@ -29,6 +29,8 @@ import type {
   TCheckUserKeyResponse,
   SharedLinksListParams,
   SharedLinksResponse,
+  UsageAnalyticsParams,
+  UsageAnalyticsResponse,
 } from 'librechat-data-provider';
 import type { ConversationCursorData } from '~/utils/convos';
 import { findConversationInInfinite } from '~/utils';
@@ -515,6 +517,24 @@ export const useGetRandomPrompts = (
       retry: false,
       ...config,
       enabled: config?.enabled !== undefined ? config.enabled : true,
+    },
+  );
+};
+
+export const useUsageAnalyticsQuery = (
+  params: UsageAnalyticsParams,
+  config?: UseQueryOptions<UsageAnalyticsResponse>,
+) => {
+  const { startDate, endDate, userId } = params;
+  const enabled = Boolean(startDate && endDate);
+
+  return useQuery<UsageAnalyticsResponse>(
+    [QueryKeys.analyticsUsage, { startDate, endDate, userId }],
+    () => dataService.getUsageAnalytics({ startDate, endDate, userId }),
+    {
+      ...config,
+      enabled: (config?.enabled ?? true) && enabled,
+      refetchOnWindowFocus: false,
     },
   );
 };

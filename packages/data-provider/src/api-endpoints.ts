@@ -44,6 +44,9 @@ export const user = () => `${BASE_URL}/api/user`;
 
 export const balance = () => `${BASE_URL}/api/balance`;
 
+export const analyticsUsage = (startDate: string, endDate: string, userId?: string) =>
+  `${BASE_URL}/api/analytics/usage${buildQuery({ startDate, endDate, userId })}`;
+
 export const userPlugins = () => `${BASE_URL}/api/user/plugins`;
 
 export const deleteUser = () => `${BASE_URL}/api/user/delete`;

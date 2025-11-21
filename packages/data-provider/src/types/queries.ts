@@ -195,6 +195,38 @@ export interface MCPAuthValuesResponse {
   authValueFlags: Record<string, boolean>;
 }
 
+export type UsageAnalyticsParams = {
+  startDate: string;
+  endDate: string;
+  userId?: string;
+};
+
+export type UsageByModel = {
+  model: string;
+  totalTokens: number;
+  totalCost: number;
+};
+
+export type UsageAnalyticsRow = {
+  userId: string | null;
+  name: string;
+  email?: string | null;
+  totalTokens: number;
+  totalCost: number;
+  usageByModel?: UsageByModel[];
+};
+
+export type UsageAnalyticsResponse = {
+  summary: {
+    startDate: string;
+    endDate: string;
+    totalTokens: number;
+    totalCost: number;
+    userId?: string;
+  };
+  users: UsageAnalyticsRow[];
+};
+
 /* SharePoint Graph API Token */
 export type GraphTokenParams = {
   scopes: string;

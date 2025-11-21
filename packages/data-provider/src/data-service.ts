@@ -94,6 +94,18 @@ export function getUserBalance(): Promise<t.TBalanceResponse> {
   return request.get(endpoints.balance());
 }
 
+export const getUsageAnalytics = (
+  params: q.UsageAnalyticsParams,
+): Promise<q.UsageAnalyticsResponse> => {
+  const { startDate, endDate, userId } = params;
+
+  if (!startDate || !endDate) {
+    throw new Error('startDate and endDate are required');
+  }
+
+  return request.get(endpoints.analyticsUsage(startDate, endDate, userId));
+};
+
 export const updateTokenCount = (text: string) => {
   return request.post(endpoints.tokenizer(), { arg: text });
 };
