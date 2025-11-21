@@ -75,7 +75,7 @@ describe('AnalyticsController.getUsageAnalytics', () => {
     const payload = res.json.mock.calls[0][0];
     expect(payload.users).toHaveLength(2);
     expect(payload.summary.totalTokens).toBe(300);
-    expect(payload.summary.totalCost).toBe(7);
+    expect(payload.summary.totalCost).toBeCloseTo(0.000007);
   });
 
   it('applies user filter when userId is provided', async () => {

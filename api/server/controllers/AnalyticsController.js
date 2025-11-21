@@ -27,6 +27,8 @@ const formatNumber = (value) => {
   return Number.isFinite(number) ? number : 0;
 };
 
+const normalizeCost = (value) => formatNumber(value) / 1_000_000;
+
 const getUsageAnalytics = async (req, res) => {
   if (!req?.user || req.user.role !== SystemRoles.ADMIN) {
     return res.status(403).json({ message: 'Forbidden' });
@@ -123,12 +125,12 @@ const getUsageAnalytics = async (req, res) => {
       name: entry.name || entry.email || 'Unknown user',
       email: entry.email ?? null,
       totalTokens: formatNumber(entry.totalTokens),
-      totalCost: formatNumber(entry.totalCost),
+      totalCost: normalizeCost(entry.totalCost),
       usageByModel: (entry.usageByModel || [])
         .map((usage) => ({
           model: usage?.model || 'unknown',
           totalTokens: formatNumber(usage?.totalTokens),
-          totalCost: formatNumber(usage?.totalCost),
+          totalCost: normalizeCost(usage?.totalCost),
         }))
         .sort((a, b) => b.totalCost - a.totalCost),
     }));
