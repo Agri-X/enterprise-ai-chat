@@ -1,8 +1,13 @@
 const express = require('express');
-const { logger } = require('@librechat/data-schemas');
-const { requireJwtAuth } = require('~/server/middleware');
-
+const { v4 } = require('uuid');
 const { GoogleGenAI: GoogleAI } = require('@google/genai');
+const { FileContext } = require('librechat-data-provider');
+const { logger } = require('@librechat/data-schemas');
+const { createFile } = require('~/models/File');
+const { requireJwtAuth } = require('~/server/middleware');
+const { getBufferMetadata } = require('~/server/utils');
+const { getFileStrategy } = require('~/server/utils/getFileStrategy');
+const { getStrategyFunctions } = require('~/server/services/Files/strategies');
 
 const router = express.Router();
 router.use(requireJwtAuth);
@@ -14,6 +19,78 @@ const getApiKey = () =>
   process.env.GOOGLE_GENAI_API_KEY ||
   process.env.GOOGLE_GENERATIVE_AI_API_KEY ||
   '';
+
+const IMAGE_BASE_PATH = 'images';
+
+const extractBase64Payload = (data) => {
+  if (typeof data !== 'string') {
+    return null;
+  }
+
+  const trimmed = data.trim();
+  if (trimmed.startsWith('data:')) {
+    const commaIndex = trimmed.indexOf(',');
+    return commaIndex !== -1 ? trimmed.slice(commaIndex + 1) : null;
+  }
+
+  return trimmed;
+};
+
+const saveBase64Image = async ({ req, data, mimeType }) => {
+  const payload = extractBase64Payload(data);
+  if (!payload) {
+    throw new Error('Invalid image payload returned from Gemini.');
+  }
+
+  const buffer = Buffer.from(payload, 'base64');
+  const fileId = v4();
+  const userId = req.user.id;
+  const appConfig = req.config;
+  const fileStrategy = getFileStrategy(appConfig, {
+    isImage: true,
+    context: FileContext.image_generation,
+  });
+  const { saveBuffer, getFileURL } = getStrategyFunctions(fileStrategy);
+
+  if (!saveBuffer || !getFileURL) {
+    throw new Error(`File strategy "${fileStrategy}" does not support image storage.`);
+  }
+
+  const {
+    bytes = buffer.length,
+    type,
+    dimensions = {},
+    extension: detectedExtension,
+  } = (await getBufferMetadata(buffer)) || {};
+
+  const resolvedMimeType = mimeType || type || 'image/png';
+  const fallbackExtension = (resolvedMimeType.split('/')[1] || 'png').split(';')[0];
+  const extension =
+    detectedExtension && detectedExtension !== 'unknown' ? detectedExtension : fallbackExtension;
+  const safeExtension = (extension || 'png').toLowerCase();
+  const fileName = `img-${fileId}.${safeExtension}`;
+
+  await saveBuffer({ userId, fileName, buffer, basePath: IMAGE_BASE_PATH });
+  const filepath = await getFileURL({ userId, fileName, basePath: IMAGE_BASE_PATH });
+
+  await createFile(
+    {
+      user: userId,
+      file_id: fileId,
+      bytes,
+      filepath,
+      filename: fileName,
+      source: fileStrategy,
+      context: FileContext.image_generation,
+      type: resolvedMimeType,
+      width: dimensions.width,
+      height: dimensions.height,
+    },
+    true,
+  );
+
+  return filepath;
+};
 
 router.post('/generate', async (req, res) => {
   const apiKey = getApiKey();
@@ -52,8 +129,10 @@ router.post('/generate', async (req, res) => {
       return res.status(502).json({ error: 'No image data returned from the model.' });
     }
 
+    const filepath = await saveBase64Image({ req, data, mimeType });
+
     return res.status(200).json({
-      image: data,
+      filepath,
       mimeType,
       model: mappedModel,
     });
