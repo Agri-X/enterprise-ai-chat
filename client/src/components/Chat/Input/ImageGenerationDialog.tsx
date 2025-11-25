@@ -1,27 +1,24 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Button, OGDialog, OGDialogContent, OGDialogHeader, OGDialogTitle, OGDialogDescription, useToastContext } from '@librechat/client';
+import {
+  Button,
+  OGDialog,
+  OGDialogContent,
+  OGDialogDescription,
+  OGDialogHeader,
+  OGDialogTitle,
+  useToastContext,
+} from '@librechat/client';
 import { Constants } from 'librechat-data-provider';
 import type { TMessage } from 'librechat-data-provider';
 import { useAuthContext } from '~/hooks';
 import { useChatContext, useChatFormContext } from '~/Providers';
 
-type BananaDialogProps = {
+type ImageGenerationDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
-const MODEL_OPTIONS = [
-  {
-    value: 'gemini-3-pro-image-preview',
-    label: 'Gemini 3 Pro Image Preview (Nano Banana Pro Preview)',
-    description: 'Designed for professional asset production with higher fidelity and 4K-friendly detail.',
-  },
-  {
-    value: 'gemini-2.5-flash-image',
-    label: 'Gemini 2.5 Flash Image (Nano Banana)',
-    description: 'Designed for speed and efficiency with balanced quality at 1024px.',
-  },
-];
+const DEFAULT_MODEL = 'gemini-2.5-flash-image';
 
 const createId = () => {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
@@ -30,13 +27,12 @@ const createId = () => {
   return Math.random().toString(36).slice(2);
 };
 
-export default function BananaDialog({ open, onOpenChange }: BananaDialogProps) {
+export default function ImageGenerationDialog({ open, onOpenChange }: ImageGenerationDialogProps) {
   const { getValues, setValue } = useChatFormContext();
   const { getMessages, setMessages, latestMessage, conversation, setLatestMessage } =
     useChatContext();
   const { token, isAuthenticated } = useAuthContext();
   const { showToast } = useToastContext();
-  const [selectedModel, setSelectedModel] = useState(MODEL_OPTIONS[0].value);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const conversationId = useMemo(
@@ -77,7 +73,7 @@ export default function BananaDialog({ open, onOpenChange }: BananaDialogProps) 
         method: 'POST',
         credentials: 'include',
         headers,
-        body: JSON.stringify({ prompt, model: selectedModel }),
+        body: JSON.stringify({ prompt }),
       });
 
       const payload = await response.json().catch(() => ({}));
@@ -107,8 +103,8 @@ export default function BananaDialog({ open, onOpenChange }: BananaDialogProps) 
         text: prompt,
         isCreatedByUser: true,
         sender: 'user',
-        endpoint: 'banana',
-        model: selectedModel,
+        endpoint: 'image_generation',
+        model: DEFAULT_MODEL,
         createdAt: now,
         updatedAt: now,
       };
@@ -117,11 +113,11 @@ export default function BananaDialog({ open, onOpenChange }: BananaDialogProps) 
         messageId: assistantMessageId,
         conversationId,
         parentMessageId: userMessageId,
-        text: `![Banana Image](${dataUrl})`,
+        text: `![Image](${dataUrl})`,
         isCreatedByUser: false,
-        sender: 'Gemini Banana Pro',
-        endpoint: 'banana',
-        model: selectedModel,
+        sender: 'Gemini Image',
+        endpoint: 'image_generation',
+        model: DEFAULT_MODEL,
         createdAt: now,
         updatedAt: now,
       };
@@ -130,7 +126,7 @@ export default function BananaDialog({ open, onOpenChange }: BananaDialogProps) 
       setMessages([...existingMessages, userMessage, assistantMessage]);
       setLatestMessage(assistantMessage);
       setValue('text', '');
-      showToast({ status: 'success', message: 'Banana image generated.' });
+      showToast({ status: 'success', message: 'Image generated.' });
       onOpenChange(false);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Image generation failed.';
@@ -143,46 +139,29 @@ export default function BananaDialog({ open, onOpenChange }: BananaDialogProps) 
     getMessages,
     getValues,
     latestMessage?.messageId,
-    selectedModel,
     setLatestMessage,
     setMessages,
     setValue,
     showToast,
     onOpenChange,
+    isAuthenticated,
+    token,
   ]);
 
   return (
     <OGDialog open={open} onOpenChange={handleClose}>
       <OGDialogContent className="w-full max-w-md">
         <OGDialogHeader>
-          <OGDialogTitle>Model Selection</OGDialogTitle>
+          <OGDialogTitle>Gemini Image Generation</OGDialogTitle>
           <OGDialogDescription>
-            Choose a Gemini Banana Pro model to generate an image from your current prompt.
+            Generates an image from your current prompt using Gemini 2.5 Flash Image.
           </OGDialogDescription>
         </OGDialogHeader>
 
         <div className="flex flex-col gap-4 py-2">
-          <div className="flex flex-col gap-3">
-            {MODEL_OPTIONS.map((option) => (
-              <label
-                key={option.value}
-                className="flex cursor-pointer gap-3 rounded-lg border border-border-subtle p-3 hover:border-border-heavy"
-              >
-                <input
-                  type="radio"
-                  name="banana-model"
-                  value={option.value}
-                  checked={selectedModel === option.value}
-                  onChange={() => setSelectedModel(option.value)}
-                  className="mt-1"
-                  disabled={isSubmitting}
-                />
-                <div className="flex flex-col">
-                  <span className="font-semibold text-text-primary">{option.label}</span>
-                  <span className="text-sm text-text-secondary">{option.description}</span>
-                </div>
-              </label>
-            ))}
+          <div className="flex flex-col gap-2 rounded-lg border border-border-subtle p-3 bg-surface-secondary/30">
+            <span className="font-semibold text-text-primary">Model</span>
+            <span className="text-sm text-text-secondary">Gemini 2.5 Flash Image</span>
           </div>
           <div className="flex justify-end gap-2">
             <Button variant="ghost" onClick={() => handleClose(false)} disabled={isSubmitting}>

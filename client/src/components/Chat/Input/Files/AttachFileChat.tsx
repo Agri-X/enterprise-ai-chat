@@ -13,7 +13,6 @@ import type { TConversation } from 'librechat-data-provider';
 import { useGetFileConfig, useGetEndpointsQuery } from '~/data-provider';
 import AttachFileMenu from './AttachFileMenu';
 import AttachFile from './AttachFile';
-import BananaButton from '../BananaButton';
 
 function AttachFileChat({
   disableInputs,
@@ -62,7 +61,6 @@ function AttachFileChat({
     return (
       <div className="flex items-center gap-2">
         <AttachFile disabled={disableInputs} />
-        <BananaButton disabled={isUploadDisabled} />
       </div>
     );
   } else if (isAgents || (endpointSupportsFiles && !isUploadDisabled)) {
@@ -76,7 +74,6 @@ function AttachFileChat({
           agentId={conversation?.agent_id}
           endpointFileConfig={endpointFileConfig}
         />
-        <BananaButton disabled={isUploadDisabled} />
       </div>
     );
   }

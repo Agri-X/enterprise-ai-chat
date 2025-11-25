@@ -2,15 +2,10 @@ const express = require('express');
 const { logger } = require('@librechat/data-schemas');
 const { requireJwtAuth } = require('~/server/middleware');
 
-const { GoogleGenerativeAI: GoogleAI } = require('@google/generative-ai');
+const { GoogleGenAI: GoogleAI } = require('@google/genai');
 
 const router = express.Router();
 router.use(requireJwtAuth);
-
-const MODEL_MAP = {
-  'gemini-3-pro-image-preview': 'gemini-3-pro-image-preview',
-  'gemini-2.5-flash-image': 'gemini-2.5-flash-image',
-};
 
 const getApiKey = () =>
   process.env.GOOGLE_API_KEY ||
@@ -22,7 +17,7 @@ const getApiKey = () =>
 
 router.post('/generate', async (req, res) => {
   const apiKey = getApiKey();
-  const { prompt, model } = req.body ?? {};
+  const { prompt } = req.body ?? {};
 
   if (!apiKey) {
     return res.status(500).json({ error: 'Gemini API key is not configured.' });
@@ -31,11 +26,7 @@ router.post('/generate', async (req, res) => {
   if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
     return res.status(400).json({ error: 'A prompt is required to generate an image.' });
   }
-
-  const mappedModel = MODEL_MAP[model] || model;
-  if (!mappedModel || typeof mappedModel !== 'string') {
-    return res.status(400).json({ error: 'An image model must be provided.' });
-  }
+  const mappedModel = 'gemini-2.5-flash-image';
 
   try {
     if (!GoogleAI) {
@@ -48,13 +39,9 @@ router.post('/generate', async (req, res) => {
       model: mappedModel,
       contents: prompt,
     });
-    const parts = response?.response?.candidates?.[0]?.content?.parts ?? [];
+    const parts = response?.candidates?.[0]?.content?.parts ?? [];
 
-    const imagePart =
-      parts.find((part) => part?.inlineData || part?.inline_data) ||
-      response?.response?.candidates?.[0]?.content?.parts?.find(
-        (part) => part?.inlineData || part?.inline_data,
-      );
+    const imagePart = parts.find((part) => part?.inlineData || part?.inline_data);
 
     const inlineData = imagePart?.inlineData || imagePart?.inline_data;
     const data = inlineData?.data;

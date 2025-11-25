@@ -19,6 +19,7 @@ interface BadgeRowContextType {
   artifacts: ReturnType<typeof useToolToggle>;
   fileSearch: ReturnType<typeof useToolToggle>;
   codeInterpreter: ReturnType<typeof useToolToggle>;
+  imageGeneration: ReturnType<typeof useToolToggle>;
   codeApiKeyForm: ReturnType<typeof useCodeApiKeyForm>;
   searchApiKeyForm: ReturnType<typeof useSearchApiKeyForm>;
   mcpServerManager: ReturnType<typeof useMCPServerManager>;
@@ -65,11 +66,13 @@ export default function BadgeRowProvider({
       const codeToggleKey = `${LocalStorageKeys.LAST_CODE_TOGGLE_}${key}`;
       const webSearchToggleKey = `${LocalStorageKeys.LAST_WEB_SEARCH_TOGGLE_}${key}`;
       const fileSearchToggleKey = `${LocalStorageKeys.LAST_FILE_SEARCH_TOGGLE_}${key}`;
+      const imageGenToggleKey = `${LocalStorageKeys.LAST_IMAGE_GENERATION_TOGGLE_}${key}`;
       const artifactsToggleKey = `${LocalStorageKeys.LAST_ARTIFACTS_TOGGLE_}${key}`;
 
       const codeToggleValue = getTimestampedValue(codeToggleKey);
       const webSearchToggleValue = getTimestampedValue(webSearchToggleKey);
       const fileSearchToggleValue = getTimestampedValue(fileSearchToggleKey);
+      const imageGenToggleValue = getTimestampedValue(imageGenToggleKey);
       const artifactsToggleValue = getTimestampedValue(artifactsToggleKey);
 
       const initialValues: Record<string, any> = {};
@@ -114,6 +117,7 @@ export default function BadgeRowProvider({
         [Tools.execute_code]: initialValues[Tools.execute_code] ?? false,
         [Tools.web_search]: initialValues[Tools.web_search] ?? false,
         [Tools.file_search]: initialValues[Tools.file_search] ?? false,
+        image_generation: initialValues.image_generation ?? false,
         [AgentCapabilities.artifacts]: initialValues[AgentCapabilities.artifacts] ?? false,
       };
 
@@ -131,6 +135,8 @@ export default function BadgeRowProvider({
             storageKey = webSearchToggleKey;
           } else if (toolKey === Tools.file_search) {
             storageKey = fileSearchToggleKey;
+          } else if (toolKey === 'image_generation') {
+            storageKey = imageGenToggleKey;
           }
           // Store the value and set timestamp for existing values
           localStorage.setItem(storageKey, JSON.stringify(value));
@@ -178,6 +184,14 @@ export default function BadgeRowProvider({
     isAuthenticated: true,
   });
 
+  /** Image Generation hook */
+  const imageGeneration = useToolToggle({
+    conversationId,
+    toolKey: 'image_generation',
+    localStorageKey: LocalStorageKeys.LAST_IMAGE_GENERATION_TOGGLE_,
+    isAuthenticated: true,
+  });
+
   /** Artifacts hook - using a custom key since it's not a Tool but a capability */
   const artifacts = useToolToggle({
     conversationId,
@@ -192,6 +206,7 @@ export default function BadgeRowProvider({
     webSearch,
     artifacts,
     fileSearch,
+    imageGeneration,
     agentsConfig,
     conversationId,
     codeApiKeyForm,

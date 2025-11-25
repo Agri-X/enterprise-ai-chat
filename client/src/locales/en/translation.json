@@ -953,6 +953,8 @@
   "com_ui_fork_success": "Successfully forked conversation",
   "com_ui_fork_visible": "Visible messages only",
   "com_ui_generate_qrcode": "Generate QR Code",
+  "com_ui_image_generation": "Image Generation",
+  "com_ui_generate_image": "Generate Image",
   "com_ui_generating": "Generating...",
   "com_ui_generation_settings": "Generation Settings",
   "com_ui_getting_started": "Getting Started",
