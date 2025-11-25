@@ -59,15 +59,20 @@ const DragDropModal = ({ onOptionSelect, setShowModal, files, isVisible }: DragD
     // Check if provider supports document upload
     if (isDocumentSupportedProvider(endpointType) || isDocumentSupportedProvider(currentProvider)) {
       const isGoogleProvider = currentProvider === EModelEndpoint.google;
+      const isDocType = (type?: string) =>
+        type === 'application/pdf' ||
+        type === 'application/msword' ||
+        type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+
       const validFileTypes = isGoogleProvider
         ? files.every(
             (file) =>
               file.type?.startsWith('image/') ||
               file.type?.startsWith('video/') ||
               file.type?.startsWith('audio/') ||
-              file.type === 'application/pdf',
+              isDocType(file.type),
           )
-        : files.every((file) => file.type?.startsWith('image/') || file.type === 'application/pdf');
+        : files.every((file) => file.type?.startsWith('image/') || isDocType(file.type));
 
       _options.push({
         label: localize('com_ui_upload_provider'),

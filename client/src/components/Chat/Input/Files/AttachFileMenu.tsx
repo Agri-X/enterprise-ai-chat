@@ -83,6 +83,11 @@ const AttachFileMenu = ({
     ephemeralAgent,
   );
 
+  const documentAccept =
+    '.pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+  const imageAccept = 'image/*';
+  const googleMediaAccept = 'video/*,audio/*';
+
   const handleUploadClick = (
     fileType?: 'image' | 'document' | 'multimodal' | 'google_multimodal',
   ) => {
@@ -91,13 +96,13 @@ const AttachFileMenu = ({
     }
     inputRef.current.value = '';
     if (fileType === 'image') {
-      inputRef.current.accept = 'image/*';
+      inputRef.current.accept = imageAccept;
     } else if (fileType === 'document') {
-      inputRef.current.accept = '.pdf,application/pdf';
+      inputRef.current.accept = documentAccept;
     } else if (fileType === 'multimodal') {
-      inputRef.current.accept = 'image/*,.pdf,application/pdf';
+      inputRef.current.accept = `${imageAccept},${documentAccept}`;
     } else if (fileType === 'google_multimodal') {
-      inputRef.current.accept = 'image/*,.pdf,application/pdf,video/*,audio/*';
+      inputRef.current.accept = `${imageAccept},${documentAccept},${googleMediaAccept}`;
     } else {
       inputRef.current.accept = '';
     }
