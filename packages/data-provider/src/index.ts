@@ -23,7 +23,6 @@ export * from './types/agents';
 export * from './types/assistants';
 export * from './types/files';
 export * from './types/mutations';
-export * from './types/queries';
 export * from './types/runs';
 export * from './types/web';
 export * from './types/graph';

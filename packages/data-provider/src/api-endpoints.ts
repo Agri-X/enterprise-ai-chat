@@ -1,5 +1,6 @@
 import type { AssistantsEndpoint } from './schemas';
 import * as q from './types/queries';
+import type { GroupListParams } from './types/groups';
 import { ResourceType } from './accessPermissions';
 
 let BASE_URL = '';
@@ -97,6 +98,18 @@ export const revokeUserKey = (name: string) => `${keysEndpoint}/${name}`;
 export const revokeAllUserKeys = () => `${keysEndpoint}?all=true`;
 
 export const conversationsRoot = `${BASE_URL}/api/convos`;
+
+export const groups = (params?: GroupListParams) => {
+  let url = `${BASE_URL}/api/groups`;
+  if (params) {
+    url += buildQuery(params);
+  }
+  return url;
+};
+export const groupById = (groupId: string) => `${groups()}/${groupId}`;
+export const groupMembers = (groupId: string) => `${groups()}/${groupId}/members`;
+export const groupMember = (groupId: string, userId: string) =>
+  `${groups()}/${groupId}/members/${userId}`;
 
 export const conversations = (params: q.ConversationListParams) => {
   return `${conversationsRoot}${buildQuery(params)}`;

@@ -130,6 +130,7 @@ const startServer = async () => {
   app.use('/api/endpoints', routes.endpoints);
   app.use('/api/balance', routes.balance);
   app.use('/api/models', routes.models);
+  app.use('/api/images', routes.images);
   app.use('/api/plugins', routes.plugins);
   app.use('/api/config', routes.config);
   app.use('/api/assistants', routes.assistants);
@@ -139,6 +140,7 @@ const startServer = async () => {
   app.use('/api/share', routes.share);
   app.use('/api/roles', routes.roles);
   app.use('/api/agents', routes.agents);
+  app.use('/api/groups', routes.groups);
   app.use('/api/banner', routes.banner);
   app.use('/api/memories', routes.memories);
   app.use('/api/permissions', routes.accessPermissions);

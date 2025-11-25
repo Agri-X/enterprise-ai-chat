@@ -18,11 +18,13 @@ const models = require('./models');
 const convos = require('./convos');
 const config = require('./config');
 const agents = require('./agents');
+const images = require('./images');
 const roles = require('./roles');
 const oauth = require('./oauth');
 const files = require('./files');
 const share = require('./share');
 const tags = require('./tags');
+const groups = require('./groups');
 const auth = require('./auth');
 const edit = require('./edit');
 const keys = require('./keys');
@@ -42,12 +44,14 @@ module.exports = {
   share,
   banner,
   agents,
+  groups,
   convos,
   search,
   config,
   analytics,
   models,
   prompts,
+  images,
   plugins,
   actions,
   presets,

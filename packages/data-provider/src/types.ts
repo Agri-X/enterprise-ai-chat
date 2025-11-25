@@ -15,6 +15,8 @@ import type { ContentTypes } from './types/runs';
 import type { Agent } from './types/assistants';
 
 export * from './schemas';
+export * from './types/groups';
+export * from './types/queries';
 
 export type TMessages = TMessage[];
 

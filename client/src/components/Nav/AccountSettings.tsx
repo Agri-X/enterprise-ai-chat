@@ -1,8 +1,10 @@
 import { useState, memo } from 'react';
 import { useRecoilState } from 'recoil';
 import * as Select from '@ariakit/react/select';
-import { FileText, LogOut } from 'lucide-react';
+import { FileText, LogOut, Users } from 'lucide-react';
 import { LinkIcon, GearIcon, DropdownMenuSeparator, Avatar } from '@librechat/client';
+import { SystemRoles } from 'librechat-data-provider';
+import { useNavigate } from 'react-router-dom';
 import { useGetStartupConfig, useGetUserBalance } from '~/data-provider';
 import FilesView from '~/components/Chat/Input/Files/FilesView';
 import { useAuthContext } from '~/hooks/AuthContext';
@@ -19,6 +21,7 @@ function AccountSettings() {
   });
   const [showSettings, setShowSettings] = useState(false);
   const [showFiles, setShowFiles] = useRecoilState(store.showFiles);
+  const navigate = useNavigate();
 
   return (
     <Select.SelectProvider>
@@ -86,6 +89,16 @@ function AccountSettings() {
           <GearIcon className="icon-md" aria-hidden="true" />
           {localize('com_nav_settings')}
         </Select.SelectItem>
+        {user?.role === SystemRoles.ADMIN && (
+          <Select.SelectItem
+            value=""
+            onClick={() => navigate('/admin/groups')}
+            className="select-item text-sm"
+          >
+            <Users className="icon-md" aria-hidden="true" />
+            Departments / Groups
+          </Select.SelectItem>
+        )}
         <DropdownMenuSeparator />
         <Select.SelectItem
           aria-selected={true}

@@ -88,6 +88,11 @@ const AttachFileMenu = ({
   const imageAccept = 'image/*';
   const googleMediaAccept = 'video/*,audio/*';
 
+  const uploadLabel =
+    localize('com_ui_upload_file') ||
+    localize('com_ui_upload_provider') ||
+    localize('com_ui_upload_image_input');
+
   const handleUploadClick = (
     fileType?: 'image' | 'document' | 'multimodal' | 'google_multimodal',
   ) => {
@@ -122,7 +127,7 @@ const AttachFileMenu = ({
         isDocumentSupportedProvider(currentProvider)
       ) {
         items.push({
-          label: localize('com_ui_upload_provider'),
+          label: uploadLabel,
           onClick: () => {
             setToolResource(undefined);
             onAction(

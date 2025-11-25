@@ -55,6 +55,10 @@ const DragDropModal = ({ onOptionSelect, setShowModal, files, isVisible }: DragD
   const options = useMemo(() => {
     const _options: FileOption[] = [];
     const currentProvider = provider || endpoint;
+    const uploadLabel =
+      localize('com_ui_upload_file') ||
+      localize('com_ui_upload_provider') ||
+      localize('com_ui_upload_image_input');
 
     // Check if provider supports document upload
     if (isDocumentSupportedProvider(endpointType) || isDocumentSupportedProvider(currentProvider)) {
@@ -75,7 +79,7 @@ const DragDropModal = ({ onOptionSelect, setShowModal, files, isVisible }: DragD
         : files.every((file) => file.type?.startsWith('image/') || isDocType(file.type));
 
       _options.push({
-        label: localize('com_ui_upload_provider'),
+        label: uploadLabel,
         value: undefined,
         icon: <FileImageIcon className="icon-md" />,
         condition: validFileTypes,

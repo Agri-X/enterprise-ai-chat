@@ -21,6 +21,7 @@ import ChatRoute from './ChatRoute';
 import Search from './Search';
 import Root from './Root';
 import UsageDashboard from '~/components/Admin/Analytics/UsageDashboard';
+import GroupManagement from '~/components/Admin/Groups/GroupManagement';
 
 const AuthLayout = () => (
   <AuthContextProvider>
@@ -115,6 +116,10 @@ export const router = createBrowserRouter(
             {
               path: 'admin/analytics',
               element: <UsageDashboard />,
+            },
+            {
+              path: 'admin/groups',
+              element: <GroupManagement />,
             },
             {
               path: 'agents',

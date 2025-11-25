@@ -94,6 +94,46 @@ export function getUserBalance(): Promise<t.TBalanceResponse> {
   return request.get(endpoints.balance());
 }
 
+export const listGroups = (params: t.GroupListParams): Promise<t.GroupListResponse> => {
+  return request.get(endpoints.groups(params));
+};
+
+export const getGroup = (groupId: string): Promise<t.GroupDetailResponse> => {
+  return request.get(endpoints.groupById(groupId));
+};
+
+export const createGroup = (
+  payload: t.CreateGroupRequest,
+): Promise<{ group: t.Group; members?: t.GroupMember[] }> => {
+  return request.post(endpoints.groups(), payload);
+};
+
+export const updateGroup = (
+  groupId: string,
+  payload: t.UpdateGroupRequest,
+): Promise<{ group: t.Group; members?: t.GroupMember[] }> => {
+  return request.put(endpoints.groupById(groupId), payload);
+};
+
+export const deleteGroup = (
+  groupId: string,
+): Promise<{ message: string; groupId: string }> => {
+  return request.delete(endpoints.groupById(groupId));
+};
+
+export const addGroupMembers = (
+  payload: t.AddGroupMembersRequest,
+): Promise<t.GroupDetailResponse> => {
+  return request.post(endpoints.groupMembers(payload.groupId), { userIds: payload.userIds });
+};
+
+export const removeGroupMember = (
+  groupId: string,
+  userId: string,
+): Promise<t.GroupDetailResponse> => {
+  return request.delete(endpoints.groupMember(groupId, userId));
+};
+
 export const getUsageAnalytics = (
   params: q.UsageAnalyticsParams,
 ): Promise<q.UsageAnalyticsResponse> => {
