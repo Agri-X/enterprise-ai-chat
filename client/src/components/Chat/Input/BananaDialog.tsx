@@ -63,6 +63,7 @@ export default function BananaDialog({ open, onOpenChange }: BananaDialogProps) 
     try {
       const response = await fetch('/api/images/generate', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt, model: selectedModel }),
       });
