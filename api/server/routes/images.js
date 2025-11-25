@@ -2,12 +2,7 @@ const express = require('express');
 const { logger } = require('@librechat/data-schemas');
 const { requireJwtAuth } = require('~/server/middleware');
 
-let GoogleAI;
-try {
-  ({ GoogleGenerativeAI: GoogleAI } = require('@google/genai'));
-} catch (error) {
-  ({ GoogleGenerativeAI: GoogleAI } = require('@google/generative-ai'));
-}
+const { GoogleGenerativeAI: GoogleAI } = require('@google/generative-ai');
 
 const router = express.Router();
 router.use(requireJwtAuth);
@@ -49,8 +44,10 @@ router.post('/generate', async (req, res) => {
     }
 
     const ai = new GoogleAI({ apiKey });
-    const modelClient = ai.getGenerativeModel({ model: mappedModel });
-    const response = await modelClient.generateContent([{ text: prompt }]);
+    const response = await ai.models.generateContent({
+      model: mappedModel,
+      contents: prompt,
+    });
     const parts = response?.response?.candidates?.[0]?.content?.parts ?? [];
 
     const imagePart =
@@ -74,8 +71,12 @@ router.post('/generate', async (req, res) => {
       model: mappedModel,
     });
   } catch (error) {
+    const reason =
+      error?.response?.data?.error?.message ||
+      error?.message ||
+      'Error generating image';
     logger.error('[images/generate] Error generating image', error);
-    return res.status(500).json({ error: 'Error generating image' });
+    return res.status(500).json({ error: reason });
   }
 });
 

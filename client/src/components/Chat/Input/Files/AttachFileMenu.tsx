@@ -92,6 +92,28 @@ const AttachFileMenu = ({
     localize('com_ui_upload_provider') ||
     localize('com_ui_upload_image_input');
 
+  const currentProvider = provider || endpoint;
+  const supportsDocuments = useMemo(
+    () => isDocumentSupportedProvider(endpointType) || isDocumentSupportedProvider(currentProvider),
+    [endpointType, currentProvider],
+  );
+
+  const defaultToolResource = useMemo(
+    () => (supportsDocuments || !capabilities.contextEnabled ? undefined : EToolResources.context),
+    [supportsDocuments, capabilities.contextEnabled],
+  );
+
+  const handlePrimaryUpload = () => {
+    setToolResource(defaultToolResource);
+    if (defaultToolResource) {
+      setEphemeralAgent((prev) => ({
+        ...prev,
+        [defaultToolResource]: true,
+      }));
+    }
+    handleUploadClick('multimodal');
+  };
+
   const handleUploadClick = (
     fileType?: 'image' | 'document' | 'multimodal' | 'google_multimodal',
   ) => {
@@ -110,32 +132,29 @@ const AttachFileMenu = ({
 
   const dropdownItems = useMemo(() => {
     const createMenuItems = (
+      includePrimary: boolean,
       onAction: (fileType?: 'image' | 'document' | 'multimodal' | 'google_multimodal') => void,
     ) => {
       const items: MenuItemProps[] = [];
 
-      const currentProvider = provider || endpoint;
-      const supportsDocuments =
-        isDocumentSupportedProvider(endpointType) || isDocumentSupportedProvider(currentProvider);
-      const defaultToolResource =
-        supportsDocuments || !capabilities.contextEnabled ? undefined : EToolResources.context;
+      if (includePrimary) {
+        items.push({
+          label: uploadLabel,
+          onClick: () => {
+            setToolResource(defaultToolResource);
+            if (defaultToolResource) {
+              setEphemeralAgent((prev) => ({
+                ...prev,
+                [defaultToolResource]: true,
+              }));
+            }
+            onAction('multimodal');
+          },
+          icon: supportsDocuments ? <FileImageIcon className="icon-md" /> : <ImageUpIcon className="icon-md" />,
+        });
+      }
 
-      items.push({
-        label: uploadLabel,
-        onClick: () => {
-          setToolResource(defaultToolResource);
-          if (defaultToolResource) {
-            setEphemeralAgent((prev) => ({
-              ...prev,
-              [defaultToolResource]: true,
-            }));
-          }
-          onAction('multimodal');
-        },
-        icon: supportsDocuments ? <FileImageIcon className="icon-md" /> : <ImageUpIcon className="icon-md" />,
-      });
-
-      if (capabilities.contextEnabled) {
+      if (capabilities.contextEnabled && defaultToolResource !== EToolResources.context) {
         items.push({
           label: localize('com_ui_upload_ocr_text'),
           onClick: () => {
@@ -179,10 +198,10 @@ const AttachFileMenu = ({
       return items;
     };
 
-    const localItems = createMenuItems(handleUploadClick);
+    const localItems = createMenuItems(false, handleUploadClick);
 
     if (sharePointEnabled) {
-      const sharePointItems = createMenuItems(() => {
+      const sharePointItems = createMenuItems(true, () => {
         setIsSharePointDialogOpen(true);
         // Note: toolResource will be set by the specific item clicked
       });
@@ -214,6 +233,7 @@ const AttachFileMenu = ({
     <TooltipAnchor
       render={
         <Ariakit.MenuButton
+          onClick={handlePrimaryUpload}
           disabled={isUploadDisabled}
           id="attach-file-menu-button"
           aria-label="Attach File Options"
