@@ -84,9 +84,8 @@ const AttachFileMenu = ({
   );
 
   const documentAccept =
-    '.pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    '.pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
   const imageAccept = 'image/*';
-  const googleMediaAccept = 'video/*,audio/*';
 
   const uploadLabel =
     localize('com_ui_upload_file') ||
@@ -102,14 +101,8 @@ const AttachFileMenu = ({
     inputRef.current.value = '';
     if (fileType === 'image') {
       inputRef.current.accept = imageAccept;
-    } else if (fileType === 'document') {
-      inputRef.current.accept = documentAccept;
-    } else if (fileType === 'multimodal') {
-      inputRef.current.accept = `${imageAccept},${documentAccept}`;
-    } else if (fileType === 'google_multimodal') {
-      inputRef.current.accept = `${imageAccept},${documentAccept},${googleMediaAccept}`;
     } else {
-      inputRef.current.accept = '';
+      inputRef.current.accept = `${imageAccept},${documentAccept}`;
     }
     inputRef.current.click();
     inputRef.current.accept = '';
@@ -122,30 +115,25 @@ const AttachFileMenu = ({
       const items: MenuItemProps[] = [];
 
       const currentProvider = provider || endpoint;
-      if (
-        isDocumentSupportedProvider(endpointType) ||
-        isDocumentSupportedProvider(currentProvider)
-      ) {
-        items.push({
-          label: uploadLabel,
-          onClick: () => {
-            setToolResource(undefined);
-            onAction(
-              (provider || endpoint) === EModelEndpoint.google ? 'google_multimodal' : 'multimodal',
-            );
-          },
-          icon: <FileImageIcon className="icon-md" />,
-        });
-      } else {
-        items.push({
-          label: localize('com_ui_upload_image_input'),
-          onClick: () => {
-            setToolResource(undefined);
-            onAction('image');
-          },
-          icon: <ImageUpIcon className="icon-md" />,
-        });
-      }
+      const supportsDocuments =
+        isDocumentSupportedProvider(endpointType) || isDocumentSupportedProvider(currentProvider);
+      const defaultToolResource =
+        supportsDocuments || !capabilities.contextEnabled ? undefined : EToolResources.context;
+
+      items.push({
+        label: uploadLabel,
+        onClick: () => {
+          setToolResource(defaultToolResource);
+          if (defaultToolResource) {
+            setEphemeralAgent((prev) => ({
+              ...prev,
+              [defaultToolResource]: true,
+            }));
+          }
+          onAction('multimodal');
+        },
+        icon: supportsDocuments ? <FileImageIcon className="icon-md" /> : <ImageUpIcon className="icon-md" />,
+      });
 
       if (capabilities.contextEnabled) {
         items.push({

@@ -32,7 +32,6 @@ export const fullMimeTypesList = [
   'text/x-c++',
   'application/csv',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'application/msword',
   'text/html',
   'text/x-java',
   'application/json',
@@ -88,7 +87,6 @@ export const codeInterpreterMimeTypesList = [
   'text/x-c++',
   'application/csv',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'application/msword',
   'text/html',
   'text/x-java',
   'application/json',
@@ -119,7 +117,6 @@ export const retrievalMimeTypesList = [
   'text/x-c',
   'text/x-c++',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'application/msword',
   'text/html',
   'text/x-java',
   'application/json',
@@ -143,7 +140,7 @@ export const textMimeTypes =
   /^(text\/(x-c|x-csharp|tab-separated-values|x-c\+\+|x-h|x-java|html|markdown|x-php|x-python|x-script\.python|x-ruby|x-tex|plain|css|vtt|javascript|csv|xml))$/;
 
 export const applicationMimeTypes =
-  /^(application\/(epub\+zip|csv|json|pdf|msword|x-tar|typescript|vnd\.openxmlformats-officedocument\.(wordprocessingml\.document|presentationml\.presentation|spreadsheetml\.sheet)|xml|zip))$/;
+  /^(application\/(epub\+zip|csv|json|pdf|x-tar|typescript|vnd\.openxmlformats-officedocument\.(wordprocessingml\.document|presentationml\.presentation|spreadsheetml\.sheet)|xml|zip))$/;
 
 export const imageMimeTypes = /^image\/(jpeg|gif|png|webp|heic|heif)$/;
 
@@ -156,7 +153,7 @@ export const defaultOCRMimeTypes = [
   imageMimeTypes,
   /^application\/pdf$/,
   /^application\/vnd\.openxmlformats-officedocument\.(wordprocessingml\.document|presentationml\.presentation|spreadsheetml\.sheet)$/,
-  /^application\/(msword|vnd\.ms-(word|powerpoint|excel))$/,
+  /^application\/vnd\.ms-(word|powerpoint|excel)$/,
   /^application\/epub\+zip$/,
 ];
 
@@ -205,7 +202,7 @@ export const codeTypeMapping: { [key: string]: string } = {
 
 export const retrievalMimeTypes = [
   /^(text\/(x-c|x-c\+\+|x-h|html|x-java|markdown|x-php|x-python|x-script\.python|x-ruby|x-tex|plain|vtt|xml))$/,
-  /^(application\/(json|pdf|msword|vnd\.openxmlformats-officedocument\.(wordprocessingml\.document|presentationml\.presentation)))$/,
+  /^(application\/(json|pdf|vnd\.openxmlformats-officedocument\.(wordprocessingml\.document|presentationml\.presentation)))$/,
 ];
 
 export const megabyte = 1024 * 1024;

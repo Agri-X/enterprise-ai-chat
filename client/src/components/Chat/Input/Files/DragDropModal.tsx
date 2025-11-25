@@ -60,39 +60,24 @@ const DragDropModal = ({ onOptionSelect, setShowModal, files, isVisible }: DragD
       localize('com_ui_upload_provider') ||
       localize('com_ui_upload_image_input');
 
-    // Check if provider supports document upload
-    if (isDocumentSupportedProvider(endpointType) || isDocumentSupportedProvider(currentProvider)) {
-      const isGoogleProvider = currentProvider === EModelEndpoint.google;
-      const isDocType = (type?: string) =>
-        type === 'application/pdf' ||
-        type === 'application/msword' ||
-        type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    const supportsDocuments =
+      isDocumentSupportedProvider(endpointType) || isDocumentSupportedProvider(currentProvider);
+    const defaultToolResource =
+      supportsDocuments || !capabilities.contextEnabled ? undefined : EToolResources.context;
 
-      const validFileTypes = isGoogleProvider
-        ? files.every(
-            (file) =>
-              file.type?.startsWith('image/') ||
-              file.type?.startsWith('video/') ||
-              file.type?.startsWith('audio/') ||
-              isDocType(file.type),
-          )
-        : files.every((file) => file.type?.startsWith('image/') || isDocType(file.type));
+    const isDocx = (type?: string) =>
+      type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    const isValidUploadType = (file: File) =>
+      file.type?.startsWith('image/') || file.type === 'application/pdf' || isDocx(file.type);
 
-      _options.push({
-        label: uploadLabel,
-        value: undefined,
-        icon: <FileImageIcon className="icon-md" />,
-        condition: validFileTypes,
-      });
-    } else {
-      // Only show image upload option if all files are images and provider doesn't support documents
-      _options.push({
-        label: localize('com_ui_upload_image_input'),
-        value: undefined,
-        icon: <ImageUpIcon className="icon-md" />,
-        condition: files.every((file) => file.type?.startsWith('image/')),
-      });
-    }
+    const validFileTypes = files.every(isValidUploadType);
+
+    _options.push({
+      label: uploadLabel,
+      value: defaultToolResource,
+      icon: supportsDocuments ? <FileImageIcon className="icon-md" /> : <ImageUpIcon className="icon-md" />,
+      condition: validFileTypes,
+    });
     if (capabilities.fileSearchEnabled && fileSearchAllowedByAgent) {
       _options.push({
         label: localize('com_ui_upload_file_search'),

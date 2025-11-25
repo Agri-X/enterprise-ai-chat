@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Button, OGDialog, OGDialogContent, OGDialogHeader, OGDialogTitle, OGDialogDescription, useToastContext } from '@librechat/client';
 import { Constants } from 'librechat-data-provider';
 import type { TMessage } from 'librechat-data-provider';
+import { useAuthContext } from '~/hooks';
 import { useChatContext, useChatFormContext } from '~/Providers';
 
 type BananaDialogProps = {
@@ -33,6 +34,7 @@ export default function BananaDialog({ open, onOpenChange }: BananaDialogProps) 
   const { getValues, setValue } = useChatFormContext();
   const { getMessages, setMessages, latestMessage, conversation, setLatestMessage } =
     useChatContext();
+  const { token, isAuthenticated } = useAuthContext();
   const { showToast } = useToastContext();
   const [selectedModel, setSelectedModel] = useState(MODEL_OPTIONS[0].value);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -58,13 +60,23 @@ export default function BananaDialog({ open, onOpenChange }: BananaDialogProps) 
       return;
     }
 
+    if (!isAuthenticated && !token) {
+      showToast({ status: 'warning', message: 'Please log in to generate images.' });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
       const response = await fetch('/api/images/generate', {
         method: 'POST',
         credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ prompt, model: selectedModel }),
       });
 
