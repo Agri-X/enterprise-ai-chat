@@ -30,6 +30,7 @@ import useUserKey from '~/hooks/Input/useUserKey';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '~/hooks';
 import { logger } from '~/utils';
+import { useToastContext } from '@librechat/client';
 
 const logChatRequest = (request: Record<string, unknown>) => {
   logger.log('=====================================\nAsk function called with:');
@@ -63,7 +64,8 @@ export default function useChatFunctions({
 }) {
   const navigate = useNavigate();
   const getSender = useGetSender();
-  const { user } = useAuthContext();
+  const { user, token, isAuthenticated } = useAuthContext();
+  const { showToast } = useToastContext();
   const queryClient = useQueryClient();
   const setFilesToDelete = useSetFilesToDelete();
   const getEphemeralAgent = useGetEphemeralAgent();
@@ -71,6 +73,101 @@ export default function useChatFunctions({
   const { getExpiry } = useUserKey(immutableConversation?.endpoint ?? '');
   const setShowStopButton = useSetRecoilState(store.showStopButtonByIndex(index));
   const resetLatestMultiMessage = useResetRecoilState(store.latestMessageFamily(index + 1));
+
+  const handleImageGeneration = async ({
+    prompt,
+    conversationId,
+    parentMessageId,
+  }: {
+    prompt: string;
+    conversationId: string | null;
+    parentMessageId: string | null;
+  }) => {
+    const trimmedPrompt = prompt.trim();
+    if (!trimmedPrompt) {
+      showToast({ status: 'warning', message: 'Please enter a prompt in the chat input first.' });
+      return;
+    }
+
+    if (!isAuthenticated && !token) {
+      showToast({ status: 'warning', message: 'Please log in to generate images.' });
+      return;
+    }
+
+    const baseMessages = getMessages() ?? [];
+    const now = new Date().toISOString();
+    const userMessageId = v4();
+    const assistantMessageId = v4();
+    const convoId = conversationId ?? Constants.NEW_CONVO;
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const userMessage: TMessage = {
+      messageId: userMessageId,
+      conversationId: convoId,
+      parentMessageId,
+      text: trimmedPrompt,
+      isCreatedByUser: true,
+      sender: 'user',
+      endpoint: 'image_generation',
+      model: 'gemini-2.5-flash-image',
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    setMessages([...baseMessages, userMessage]);
+    if (setLatestMessage) {
+      setLatestMessage(userMessage);
+    }
+
+    try {
+      const response = await fetch('/api/images/generate', {
+        method: 'POST',
+        credentials: 'include',
+        headers,
+        body: JSON.stringify({ prompt: trimmedPrompt }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload?.error || 'Image generation failed.');
+      }
+
+      const imageData = payload?.image;
+      const mimeType = payload?.mimeType || 'image/png';
+      if (!imageData) {
+        throw new Error('No image data returned from the server.');
+      }
+
+      const dataUrl = imageData.startsWith('data:')
+        ? imageData
+        : `data:${mimeType};base64,${imageData}`;
+
+      const assistantMessage: TMessage = {
+        messageId: assistantMessageId,
+        conversationId: convoId,
+        parentMessageId: userMessageId,
+        text: `![Image](${dataUrl})`,
+        isCreatedByUser: false,
+        sender: 'Gemini Image',
+        endpoint: 'image_generation',
+        model: 'gemini-2.5-flash-image',
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      setMessages([...baseMessages, userMessage, assistantMessage]);
+      if (setLatestMessage) {
+        setLatestMessage(assistantMessage);
+      }
+      showToast({ status: 'success', message: 'Image generated.' });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Image generation failed.';
+      showToast({ status: 'error', message });
+    }
+  };
 
   const ask: TAskFunction = (
     {
@@ -117,6 +214,14 @@ export default function useChatFunctions({
     }
 
     const ephemeralAgent = getEphemeralAgent(conversationId ?? Constants.NEW_CONVO);
+    if (ephemeralAgent?.image_generation) {
+      void handleImageGeneration({
+        prompt: text,
+        conversationId,
+        parentMessageId,
+      });
+      return;
+    }
     const isEditOrContinue = isEdited || isContinued;
 
     let currentMessages: TMessage[] | null = overrideMessages ?? getMessages() ?? [];
