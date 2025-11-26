@@ -4,7 +4,7 @@ const { GoogleGenAI: GoogleAI } = require('@google/genai');
 const { FileContext } = require('librechat-data-provider');
 const { logger } = require('@librechat/data-schemas');
 const { createFile } = require('~/models/File');
-const { requireJwtAuth } = require('~/server/middleware');
+const { requireJwtAuth, configMiddleware } = require('~/server/middleware');
 const { getBufferMetadata } = require('~/server/utils');
 const { getFileStrategy } = require('~/server/utils/getFileStrategy');
 const { getStrategyFunctions } = require('~/server/services/Files/strategies');
@@ -92,7 +92,7 @@ const saveBase64Image = async ({ req, data, mimeType }) => {
   return filepath;
 };
 
-router.post('/generate', async (req, res) => {
+router.post('/generate', configMiddleware, async (req, res) => {
   const apiKey = getApiKey();
   const { prompt } = req.body ?? {};
 
