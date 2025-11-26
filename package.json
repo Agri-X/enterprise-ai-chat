@@ -1,5 +1,5 @@
 {
-  "name": "LibreChat",
+  "name": "Enterprise AI Chat",
   "version": "v0.8.1-rc1",
   "description": "",
   "workspaces": [
@@ -93,7 +93,7 @@
   "bugs": {
     "url": "https://github.com/danny-avila/LibreChat/issues"
   },
-  "homepage": "https://librechat.ai/",
+  "homepage": "",
   "devDependencies": {
     "@axe-core/playwright": "^4.10.1",
     "@eslint/compat": "^1.2.6",
