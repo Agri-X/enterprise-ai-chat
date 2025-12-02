@@ -8,6 +8,8 @@ const { requireJwtAuth, configMiddleware } = require('~/server/middleware');
 const { getBufferMetadata } = require('~/server/utils');
 const { getFileStrategy } = require('~/server/utils/getFileStrategy');
 const { getStrategyFunctions } = require('~/server/services/Files/strategies');
+const { spendTokens } = require('~/models/spendTokens');
+const { countTokens } = require('~/server/utils/countTokens');
 
 const router = express.Router();
 router.use(requireJwtAuth);
@@ -130,6 +132,23 @@ router.post('/generate', configMiddleware, async (req, res) => {
     }
 
     const filepath = await saveBase64Image({ req, data, mimeType });
+
+    const usageMetadata = response?.usageMetadata || response?.usage_metadata;
+    const promptTokens =
+      usageMetadata?.promptTokenCount || usageMetadata?.prompt_token_count || countTokens(prompt);
+    const completionTokens = 1290;
+
+    await spendTokens(
+      {
+        user: req.user.id,
+        model: mappedModel,
+        context: 'image_generation',
+      },
+      {
+        promptTokens,
+        completionTokens,
+      },
+    );
 
     return res.status(200).json({
       filepath,
