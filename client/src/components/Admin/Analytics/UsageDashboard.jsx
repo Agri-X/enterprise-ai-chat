@@ -195,7 +195,7 @@ const UsageDashboard = () => {
             </div>
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground">Range:</span>
-              <span className="font-medium">{startDate} -> {endDate}</span>
+              <span className="font-medium">{`${startDate} -> ${endDate}`}</span>
             </div>
           </div>
         </div>

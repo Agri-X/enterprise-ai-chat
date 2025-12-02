@@ -7,6 +7,23 @@ import { compression } from 'vite-plugin-compression2';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import { VitePWA } from 'vite-plugin-pwa';
 
+const stripFlowDirectives = (): Plugin => ({
+  name: 'strip-flow-directives-react-virtualized',
+  enforce: 'pre',
+  transform(code, id) {
+    if (
+      id.includes('react-virtualized') &&
+      code.startsWith("'no babel-plugin-flow-react-proptypes';")
+    ) {
+      return {
+        code: code.replace("'no babel-plugin-flow-react-proptypes';", ''),
+        map: null,
+      };
+    }
+    return null;
+  },
+});
+
 // https://vitejs.dev/config/
 const backendPort = process.env.BACKEND_PORT && Number(process.env.BACKEND_PORT) || 3080;
 const backendURL = process.env.HOST ? `http://${process.env.HOST}:${backendPort}` : `http://localhost:${backendPort}`;
@@ -34,6 +51,7 @@ export default defineConfig(({ command }) => ({
   envPrefix: ['VITE_', 'SCRIPT_', 'DOMAIN_', 'ALLOW_'],
   plugins: [
     react(),
+    stripFlowDirectives(),
     nodePolyfills(),
     VitePWA({
       injectRegister: 'auto', // 'auto' | 'manual' | 'disabled'
