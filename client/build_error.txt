@@ -1,0 +1,118 @@
+
+> @librechat/frontend@v0.8.1-rc1 build
+> cross-env NODE_ENV=production vite build && node ./scripts/post-build.cjs
+
+vite v6.4.1 building for production...
+transforming...
+
+warn - The class `ease-[cubic-bezier(0.175,0.885,0.32,1.275)]` is ambiguous and matches multiple utilities.
+warn - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.175,0.885,0.32,1.275)&rsqb;` to silence this warning.
+✓ 2216 modules transformed.
+
+PWA v0.21.2
+mode      generateSW
+precache  1 entries (0.00 KiB)
+files generated
+  dist/sw.js
+  dist/workbox-4c320e2c.js
+warnings
+  One of the glob patterns doesn't match any files. Please remove or fix the following: {
+  "globDirectory": "/Users/admin/github/enterprise-ai-chat/client/dist",
+  "globPattern": "**/*.{js,css,html}",
+  "globIgnores": [
+    "images/**/*",
+    "**/*.map",
+    "index.html",
+    "sw.js",
+    "workbox-*.js"
+  ]
+}
+  One of the glob patterns doesn't match any files. Please remove or fix the following: {
+  "globDirectory": "/Users/admin/github/enterprise-ai-chat/client/dist",
+  "globPattern": "assets/favicon*.png",
+  "globIgnores": [
+    "images/**/*",
+    "**/*.map",
+    "index.html",
+    "sw.js",
+    "workbox-*.js"
+  ]
+}
+  One of the glob patterns doesn't match any files. Please remove or fix the following: {
+  "globDirectory": "/Users/admin/github/enterprise-ai-chat/client/dist",
+  "globPattern": "assets/icon-*.png",
+  "globIgnores": [
+    "images/**/*",
+    "**/*.map",
+    "index.html",
+    "sw.js",
+    "workbox-*.js"
+  ]
+}
+  One of the glob patterns doesn't match any files. Please remove or fix the following: {
+  "globDirectory": "/Users/admin/github/enterprise-ai-chat/client/dist",
+  "globPattern": "assets/apple-touch-icon*.png",
+  "globIgnores": [
+    "images/**/*",
+    "**/*.map",
+    "index.html",
+    "sw.js",
+    "workbox-*.js"
+  ]
+}
+  One of the glob patterns doesn't match any files. Please remove or fix the following: {
+  "globDirectory": "/Users/admin/github/enterprise-ai-chat/client/dist",
+  "globPattern": "assets/maskable-icon.png",
+  "globIgnores": [
+    "images/**/*",
+    "**/*.map",
+    "index.html",
+    "sw.js",
+    "workbox-*.js"
+  ]
+}
+  One of the glob patterns doesn't match any files. Please remove or fix the following: {
+  "globDirectory": "/Users/admin/github/enterprise-ai-chat/client/dist",
+  "globPattern": "manifest.webmanifest",
+  "globIgnores": [
+    "images/**/*",
+    "**/*.map",
+    "index.html",
+    "sw.js",
+    "workbox-*.js"
+  ]
+}
+
+✗ Build failed in 5.54s
+error during build:
+[vite-plugin-pwa:build] [plugin vite-plugin-pwa:build] src/hooks/Files/useFileHandling.ts (251:8): There was an error during the build:
+  Transform failed with 1 error:
+/Users/admin/github/enterprise-ai-chat/client/src/hooks/Files/useFileHandling.ts:251:8: ERROR: The symbol "setFilesLoading" has already been declared
+Additionally, handling the error in the 'buildEnd' hook caused the following error:
+  Transform failed with 1 error:
+/Users/admin/github/enterprise-ai-chat/client/src/hooks/Files/useFileHandling.ts:251:8: ERROR: The symbol "setFilesLoading" has already been declared
+file: /Users/admin/github/enterprise-ai-chat/client/src/hooks/Files/useFileHandling.ts:251:8
+
+The symbol "setFilesLoading" has already been declared
+249|    };
+250|  
+251|    const setFilesLoading =
+   |          ^
+252|      params?.setFilesLoading ?? chatSetFilesLoading ?? (() => undefined as unknown as void);
+253|  
+
+    at getRollupError (file:///Users/admin/github/enterprise-ai-chat/node_modules/rollup/dist/es/shared/parseAst.js:397:41)
+    at file:///Users/admin/github/enterprise-ai-chat/node_modules/rollup/dist/es/shared/node-entry.js:22876:39
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async catchUnfinishedHookActions (file:///Users/admin/github/enterprise-ai-chat/node_modules/rollup/dist/es/shared/node-entry.js:22330:16)
+    at async rollupInternal (file:///Users/admin/github/enterprise-ai-chat/node_modules/rollup/dist/es/shared/node-entry.js:22859:5)
+    at async buildEnvironment (file:///Users/admin/github/enterprise-ai-chat/client/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:46235:14)
+    at async Object.defaultBuildApp [as buildApp] (file:///Users/admin/github/enterprise-ai-chat/client/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:46713:5)
+    at async CAC.<anonymous> (file:///Users/admin/github/enterprise-ai-chat/client/node_modules/vite/dist/node/cli.js:863:7)
+npm error Lifecycle script `build` failed with error:
+npm error code 1
+npm error path /Users/admin/github/enterprise-ai-chat/client
+npm error workspace @librechat/frontend@v0.8.1-rc1
+npm error location /Users/admin/github/enterprise-ai-chat/client
+npm error command failed
+npm error command sh -c cross-env NODE_ENV=production vite build && node ./scripts/post-build.cjs

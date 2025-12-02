@@ -248,9 +248,6 @@ const useFileHandling = (params?: UseFileHandling) => {
     img.src = preview;
   };
 
-  const setFilesLoading =
-    params?.setFilesLoading ?? chatSetFilesLoading ?? (() => undefined as unknown as void);
-
   const handleFiles = async (_files: FileList | File[], _toolResource?: string) => {
     abortControllerRef.current = new AbortController();
     const fileList = Array.from(_files);
