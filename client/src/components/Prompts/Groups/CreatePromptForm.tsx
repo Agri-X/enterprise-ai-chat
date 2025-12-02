@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, TextareaAutosize, Input } from '@librechat/client';
 import { useForm, Controller, FormProvider } from 'react-hook-form';
@@ -12,6 +12,8 @@ import { useLocalize, useHasAccess } from '~/hooks';
 import Command from '~/components/Prompts/Command';
 import { useCreatePrompt } from '~/data-provider';
 import { cn } from '~/utils';
+import type { ExtendedFile } from '~/common';
+import PromptFileContext from '../PromptFileContext';
 
 type CreateFormValues = {
   name: string;
@@ -44,6 +46,7 @@ const CreatePromptForm = ({
     permission: Permissions.CREATE,
   });
   const hasAccess = hasUseAccess && hasCreateAccess;
+  const [files, setFiles] = useState<Map<string, ExtendedFile>>(new Map());
 
   useEffect(() => {
     let timeoutId: ReturnType<typeof setTimeout>;
@@ -79,6 +82,17 @@ const CreatePromptForm = ({
 
   const promptText = watch('prompt');
 
+  const extractContextFileIds = useCallback(() => {
+    const ids = new Set<string>();
+    Array.from(files.values()).forEach((file) => {
+      const fileId = file.file_id || file.temp_file_id;
+      if (fileId && file.progress === 1) {
+        ids.add(fileId);
+      }
+    });
+    return Array.from(ids);
+  }, [files]);
+
   const onSubmit = (data: CreateFormValues) => {
     const { name, category, oneliner, command, ...rest } = data;
     const groupData = { name, category } as Pick<
@@ -91,8 +105,9 @@ const CreatePromptForm = ({
     if ((command?.length ?? 0) > 0) {
       groupData.command = command;
     }
+    const context_files = extractContextFileIds();
     createPromptMutation.mutate({
-      prompt: rest,
+      prompt: { ...rest, context_files },
       group: groupData,
     });
   };
@@ -166,6 +181,7 @@ const CreatePromptForm = ({
             </div>
           </div>
           <PromptVariables promptText={promptText} />
+          <PromptFileContext files={files} setFiles={setFiles} />
           <Description
             onValueChange={(value) => methods.setValue('oneliner', value)}
             tabIndex={0}
