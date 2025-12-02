@@ -98,7 +98,8 @@ export default function useChatFunctions({
     const now = new Date().toISOString();
     const userMessageId = v4();
     const assistantMessageId = v4();
-    const convoId = conversationId ?? Constants.NEW_CONVO;
+    const isNewConvo = conversationId === Constants.NEW_CONVO || !conversationId;
+    const convoId = isNewConvo ? v4() : (conversationId as string);
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (token) {
       headers.Authorization = `Bearer ${token}`;
@@ -157,6 +158,24 @@ export default function useChatFunctions({
       if (setLatestMessage) {
         setLatestMessage(assistantMessage);
       }
+
+      // Save messages to the database
+      await fetch(`/api/messages/${convoId}`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(userMessage),
+      });
+
+      await fetch(`/api/messages/${convoId}`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(assistantMessage),
+      });
+
+      if (isNewConvo) {
+        navigate(`/c/${convoId}`);
+      }
+
       showToast({ status: 'success', message: 'Image generated.' });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Image generation failed.';

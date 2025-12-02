@@ -13,13 +13,15 @@ type PromptFileContextProps = {
 
 export default function PromptFileContext({ files, setFiles, disabled }: PromptFileContextProps) {
   const localize = useLocalize();
+  // const { setFilesLoading } = useChatContext(); // This fails outside ChatContext
   const [filesLoading, setFilesLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { handleFileChange } = useFileHandling({
     additionalMetadata: { tool_resource: EToolResources.context },
     fileSetter: setFiles,
-    setFilesLoading,
+    files, // Pass local files
+    setFilesLoading, // Pass local setter
   });
 
   const handleUploadClick = () => {

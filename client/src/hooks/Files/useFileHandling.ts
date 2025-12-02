@@ -29,6 +29,7 @@ type UseFileHandling = {
   fileSetter?: FileSetter;
   fileFilter?: (file: File) => boolean;
   additionalMetadata?: Record<string, string | undefined>;
+  files?: Map<string, ExtendedFile>;
   setFilesLoading?: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
@@ -39,7 +40,14 @@ const useFileHandling = (params?: UseFileHandling) => {
   const [errors, setErrors] = useState<string[]>([]);
   const abortControllerRef = useRef<AbortController | null>(null);
   const { startUploadTimer, clearUploadTimer } = useDelayedUploadToast();
-  const { files, setFiles, setFilesLoading: chatSetFilesLoading, conversation } = useChatContext();
+  const chatContext = useChatContext();
+
+  const files = params?.files ?? chatContext.files;
+  const setFiles = params?.fileSetter ?? chatContext.setFiles;
+  const setFilesLoading =
+    params?.setFilesLoading ?? chatContext.setFilesLoading ?? (() => undefined as unknown as void);
+  const conversation = chatContext.conversation;
+
   const setEphemeralAgent = useSetRecoilState(
     ephemeralAgentByConvoId(conversation?.conversationId ?? Constants.NEW_CONVO),
   );
@@ -48,8 +56,6 @@ const useFileHandling = (params?: UseFileHandling) => {
     params?.fileSetter ?? setFiles,
   );
   const { resizeImageIfNeeded } = useClientResize();
-  const setFilesLoading =
-    params?.setFilesLoading ?? chatSetFilesLoading ?? (() => undefined as unknown as void);
 
   const agent_id = params?.additionalMetadata?.agent_id ?? '';
   const assistant_id = params?.additionalMetadata?.assistant_id ?? '';
