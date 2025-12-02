@@ -19,6 +19,7 @@ export default function PromptFileContext({ files, setFiles, disabled }: PromptF
   const { handleFileChange } = useFileHandling({
     additionalMetadata: { tool_resource: EToolResources.context },
     fileSetter: setFiles,
+    setFilesLoading,
   });
 
   const handleUploadClick = () => {
