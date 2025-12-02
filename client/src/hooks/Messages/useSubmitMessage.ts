@@ -1,8 +1,10 @@
 import { v4 } from 'uuid';
 import { useCallback } from 'react';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
-import { Constants, replaceSpecialVars } from 'librechat-data-provider';
+import { Constants, FileSources, replaceSpecialVars } from 'librechat-data-provider';
+import type { TFile } from 'librechat-data-provider';
 import { useChatContext, useChatFormContext, useAddedChatContext } from '~/Providers';
+import type { ExtendedFile } from '~/common';
 import { useAuthContext } from '~/hooks/AuthContext';
 import store from '~/store';
 
@@ -16,15 +18,41 @@ const appendIndex = (index: number, value?: string) => {
 export default function useSubmitMessage() {
   const { user } = useAuthContext();
   const methods = useChatFormContext();
-  const { ask, index, getMessages, setMessages, latestMessage } = useChatContext();
+  const { ask, index, getMessages, setMessages, latestMessage, setFiles } = useChatContext();
   const { addedIndex, ask: askAdditional, conversation: addedConvo } = useAddedChatContext();
 
   const autoSendPrompts = useRecoilValue(store.autoSendPrompts);
   const activeConvos = useRecoilValue(store.allConversationsSelector);
   const setActivePrompt = useSetRecoilState(store.activePromptByIndex(index));
 
+  const mapFilesToExtended = useCallback((fileList: TFile[] = []) => {
+    const mapped = new Map<string, ExtendedFile>();
+    fileList.forEach((file) => {
+      const fileId = file.file_id ?? file.temp_file_id;
+      if (!fileId) {
+        return;
+      }
+      mapped.set(fileId, {
+        file_id: file.file_id ?? fileId,
+        temp_file_id: file.temp_file_id,
+        type: file.type,
+        filepath: file.filepath,
+        filename: file.filename,
+        width: file.width,
+        height: file.height,
+        size: file.bytes,
+        preview: file.filepath,
+        progress: 1,
+        source: file.source ?? FileSources.local,
+        embedded: file.embedded,
+        metadata: file.metadata,
+      });
+    });
+    return mapped;
+  }, []);
+
   const submitMessage = useCallback(
-    (data?: { text: string }) => {
+    (data?: { text: string; files?: TFile[] }) => {
       if (!data) {
         return console.warn('No data provided to submitMessage');
       }
@@ -45,13 +73,25 @@ export default function useSubmitMessage() {
       const overrideUserMessageId = hasAdded ? v4() : undefined;
       const rootIndex = addedIndex - 1;
       const clientTimestamp = new Date().toISOString();
+      const overrideFiles =
+        data.files?.map((file) => ({
+          file_id: file.file_id,
+          filepath: file.filepath,
+          type: file.type,
+          height: file.height,
+          width: file.width,
+          filename: file.filename,
+        })) ?? undefined;
 
-      ask({
-        text: data.text,
-        overrideConvoId: appendIndex(rootIndex, overrideConvoId),
-        overrideUserMessageId: appendIndex(rootIndex, overrideUserMessageId),
-        clientTimestamp,
-      });
+      ask(
+        {
+          text: data.text,
+          overrideConvoId: appendIndex(rootIndex, overrideConvoId),
+          overrideUserMessageId: appendIndex(rootIndex, overrideUserMessageId),
+          clientTimestamp,
+        },
+        { overrideFiles },
+      );
 
       if (hasAdded) {
         askAdditional(
@@ -61,7 +101,7 @@ export default function useSubmitMessage() {
             overrideUserMessageId: appendIndex(addedIndex, overrideUserMessageId),
             clientTimestamp,
           },
-          { overrideMessages: rootMessages },
+          { overrideMessages: rootMessages, overrideFiles },
         );
       }
       methods.reset();
@@ -80,18 +120,21 @@ export default function useSubmitMessage() {
   );
 
   const submitPrompt = useCallback(
-    (text: string) => {
+    (text: string, promptFiles?: TFile[]) => {
       const parsedText = replaceSpecialVars({ text, user });
       if (autoSendPrompts) {
-        submitMessage({ text: parsedText });
+        submitMessage({ text: parsedText, files: promptFiles });
         return;
       }
 
       const currentText = methods.getValues('text');
       const newText = currentText.trim().length > 1 ? `\n${parsedText}` : parsedText;
       setActivePrompt(newText);
+      if (promptFiles) {
+        setFiles(mapFilesToExtended(promptFiles));
+      }
     },
-    [autoSendPrompts, submitMessage, setActivePrompt, methods, user],
+    [autoSendPrompts, submitMessage, setActivePrompt, methods, user, setFiles, mapFilesToExtended],
   );
 
   return { submitMessage, submitPrompt };

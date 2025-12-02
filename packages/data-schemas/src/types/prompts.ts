@@ -5,6 +5,7 @@ export interface IPrompt extends Document {
   author: Types.ObjectId;
   prompt: string;
   type: 'text' | 'chat';
+  context_files?: string[];
   createdAt?: Date;
   updatedAt?: Date;
 }

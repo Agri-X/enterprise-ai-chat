@@ -502,6 +502,7 @@ export type TPrompt = {
   author: string;
   prompt: string;
   type: 'text' | 'chat';
+  context_files?: string[];
   createdAt: string;
   updatedAt: string;
   _id?: string;
@@ -515,7 +516,7 @@ export type TPromptGroup = {
   category?: string;
   projectIds?: string[];
   productionId?: string | null;
-  productionPrompt?: Pick<TPrompt, 'prompt'> | null;
+  productionPrompt?: Pick<TPrompt, 'prompt' | 'context_files'> | null;
   author: string;
   authorName: string;
   createdAt?: Date;
@@ -524,7 +525,7 @@ export type TPromptGroup = {
 };
 
 export type TCreatePrompt = {
-  prompt: Pick<TPrompt, 'prompt' | 'type'> & { groupId?: string };
+  prompt: Pick<TPrompt, 'prompt' | 'type' | 'context_files'> & { groupId?: string };
   group?: { name: string; category?: string; oneliner?: string; command?: string };
 };
 
@@ -594,7 +595,7 @@ export type TMakePromptProductionResponse = {
 export type TMakePromptProductionRequest = {
   id: string;
   groupId: string;
-  productionPrompt: Pick<TPrompt, 'prompt'>;
+  productionPrompt: Pick<TPrompt, 'prompt' | 'context_files'>;
 };
 
 export type TUpdatePromptLabelsRequest = {

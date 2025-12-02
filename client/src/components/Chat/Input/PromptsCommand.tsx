@@ -2,7 +2,8 @@ import { useState, useRef, useEffect, useMemo, memo, useCallback } from 'react';
 import { AutoSizer, List } from 'react-virtualized';
 import { Spinner, useCombobox } from '@librechat/client';
 import { useSetRecoilState, useRecoilValue } from 'recoil';
-import type { TPromptGroup } from 'librechat-data-provider';
+import type { TFile, TPromptGroup } from 'librechat-data-provider';
+import { useGetFiles } from '~/data-provider';
 import type { PromptOption } from '~/common';
 import { removeCharIfLast, detectVariables } from '~/utils';
 import VariableDialog from '~/components/Prompts/Groups/VariableDialog';
@@ -50,11 +51,14 @@ function PromptsCommand({
 }: {
   index: number;
   textAreaRef: React.MutableRefObject<HTMLTextAreaElement | null>;
-  submitPrompt: (textPrompt: string) => void;
+  submitPrompt: (textPrompt: string, files?: TFile[]) => void;
 }) {
   const localize = useLocalize();
   const { allPromptGroups, hasAccess } = usePromptGroupsContext();
   const { data, isLoading } = allPromptGroups;
+  const { data: userFiles = [] } = useGetFiles<TFile[]>({
+    enabled: hasAccess,
+  });
 
   const [activeIndex, setActiveIndex] = useState(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -70,6 +74,18 @@ function PromptsCommand({
     value: '',
     options: prompts ?? [],
   });
+
+  const resolvePromptFiles = useCallback(
+    (ids?: string[]) => {
+      if (!ids || ids.length === 0) {
+        return [];
+      }
+      return userFiles.filter(
+        (file) => ids.includes(file.file_id) || (file.temp_file_id && ids.includes(file.temp_file_id)),
+      );
+    },
+    [userFiles],
+  );
 
   const handleSelect = useCallback(
     (mention?: PromptOption, e?: React.KeyboardEvent<HTMLInputElement>) => {
@@ -90,7 +106,9 @@ function PromptsCommand({
         return;
       }
 
-      const hasVariables = detectVariables(group.productionPrompt?.prompt ?? '');
+      const productionPrompt = group.productionPrompt?.prompt ?? '';
+      const promptFiles = resolvePromptFiles(group.productionPrompt?.context_files);
+      const hasVariables = detectVariables(productionPrompt);
       if (hasVariables) {
         if (e && e.key === 'Tab') {
           e.preventDefault();
@@ -99,10 +117,18 @@ function PromptsCommand({
         setVariableDialogOpen(true);
         return;
       } else {
-        submitPrompt(group.productionPrompt?.prompt ?? '');
+        submitPrompt(productionPrompt, promptFiles);
       }
     },
-    [setSearchValue, setOpen, setShowPromptsPopover, textAreaRef, promptsMap, submitPrompt],
+    [
+      setSearchValue,
+      setOpen,
+      setShowPromptsPopover,
+      textAreaRef,
+      promptsMap,
+      submitPrompt,
+      resolvePromptFiles,
+    ],
   );
 
   useEffect(() => {

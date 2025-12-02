@@ -51,6 +51,7 @@ const createGroupPipeline = (query, skip, limit) => {
         createdAt: 1,
         updatedAt: 1,
         'productionPrompt.prompt': 1,
+        'productionPrompt.context_files': 1,
         // 'productionPrompt._id': 1,
         // 'productionPrompt.type': 1,
       },
@@ -76,6 +77,7 @@ const createAllGroupsPipeline = (
     updatedAt: 1,
     command: 1,
     'productionPrompt.prompt': 1,
+    'productionPrompt.context_files': 1,
   },
 ) => {
   return [
@@ -411,7 +413,10 @@ module.exports = {
         prompt: newPrompt,
         group: {
           ...newPromptGroup,
-          productionPrompt: { prompt: newPrompt.prompt },
+          productionPrompt: {
+            prompt: newPrompt.prompt,
+            context_files: newPrompt.context_files ?? [],
+          },
         },
       };
     } catch (error) {

@@ -11,14 +11,18 @@ import {
   ResourceType,
   PermissionBits,
   PermissionTypes,
+  FileSources,
+  EToolResources,
 } from 'librechat-data-provider';
-import type { TCreatePrompt, TPrompt, TPromptGroup } from 'librechat-data-provider';
+import type { TCreatePrompt, TFile, TPrompt, TPromptGroup } from 'librechat-data-provider';
+import type { ExtendedFile } from '~/common';
 import {
   useGetPrompts,
   useGetPromptGroup,
   useAddPromptToGroup,
   useUpdatePromptGroup,
   useMakePromptProduction,
+  useGetFiles,
 } from '~/data-provider';
 import { useResourcePermissions, useHasAccess, useLocalize } from '~/hooks';
 import CategorySelector from './Groups/CategorySelector';
@@ -37,11 +41,12 @@ import SharePrompt from './SharePrompt';
 import PromptName from './PromptName';
 import Command from './Command';
 import store from '~/store';
+import PromptFileContext from './PromptFileContext';
 
 interface RightPanelProps {
   group: TPromptGroup;
   prompts: TPrompt[];
-  selectedPrompt: any;
+  selectedPrompt: TPrompt | undefined;
   selectionIndex: number;
   selectedPromptId?: string;
   isLoadingPrompts: boolean;
@@ -115,11 +120,11 @@ const RightPanel = React.memo(
                     console.warn('No prompt is selected');
                     return;
                   }
-                  const { _id: promptVersionId = '', prompt } = selectedPrompt;
+                  const { _id: promptVersionId = '', prompt, context_files } = selectedPrompt;
                   makeProductionMutation.mutate({
                     id: promptVersionId,
                     groupId,
-                    productionPrompt: { prompt },
+                    productionPrompt: { prompt, context_files },
                   });
                 }}
                 disabled={
@@ -173,6 +178,8 @@ const PromptForm = () => {
 
   const editorMode = useRecoilValue(store.promptsEditorMode);
   const [selectionIndex, setSelectionIndex] = useState<number>(0);
+  const [files, setFiles] = useState<Map<string, ExtendedFile>>(new Map());
+  const previousPromptIdRef = useRef<string | null>(null);
 
   const prevIsEditingRef = useRef(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -187,6 +194,9 @@ const PromptForm = () => {
     { groupId: promptId },
     { enabled: hasAccess && !!promptId },
   );
+  const { data: userFiles = [] } = useGetFiles<TFile[]>({
+    enabled: hasAccess,
+  });
 
   const { hasPermission, isLoading: permissionsLoading } = useResourcePermissions(
     ResourceType.PROMPTGROUP,
@@ -212,6 +222,87 @@ const PromptForm = () => {
   );
 
   const selectedPromptId = useMemo(() => selectedPrompt?._id, [selectedPrompt?._id]);
+
+  const mapFileToExtended = useCallback(
+    (file: TFile, fallbackId?: string): ExtendedFile => ({
+      file_id: file.file_id ?? fallbackId ?? '',
+      temp_file_id: file.temp_file_id,
+      type: file.type,
+      filepath: file.filepath,
+      filename: file.filename,
+      width: file.width,
+      height: file.height,
+      size: file.bytes,
+      preview: file.filepath,
+      progress: 1,
+      source: file.source ?? FileSources.local,
+      embedded: file.embedded,
+      metadata: file.metadata,
+      tool_resource: EToolResources.context,
+    }),
+    [],
+  );
+
+  useEffect(() => {
+    const promptId = selectedPrompt?._id ?? null;
+    const contextFileIds = selectedPrompt?.context_files ?? [];
+    const promptChanged = previousPromptIdRef.current !== promptId;
+
+    if (!promptId) {
+      setFiles(new Map());
+      previousPromptIdRef.current = null;
+      return;
+    }
+
+    setFiles((currentFiles) => {
+      const nextFiles = promptChanged ? new Map<string, ExtendedFile>() : new Map(currentFiles);
+
+      contextFileIds.forEach((fileId) => {
+        if (!fileId) {
+          return;
+        }
+
+        if (!promptChanged && !nextFiles.has(fileId)) {
+          return;
+        }
+
+        const matchedFile = userFiles.find(
+          (file) => file.file_id === fileId || file.temp_file_id === fileId,
+        );
+
+        if (matchedFile) {
+          const existing = nextFiles.get(fileId);
+          nextFiles.set(fileId, { ...(existing ?? {}), ...mapFileToExtended(matchedFile, fileId) });
+          return;
+        }
+
+        if (promptChanged) {
+          nextFiles.set(fileId, {
+            file_id: fileId,
+            temp_file_id: fileId,
+            size: 1,
+            progress: 1,
+            tool_resource: EToolResources.context,
+          });
+        }
+      });
+
+      return nextFiles;
+    });
+
+    previousPromptIdRef.current = promptId;
+  }, [selectedPrompt?._id, selectedPrompt?.context_files, userFiles, mapFileToExtended]);
+
+  const extractContextFileIds = useCallback(() => {
+    const ids = new Set<string>();
+    Array.from(files.values()).forEach((file) => {
+      const fileId = file.file_id || file.temp_file_id;
+      if (fileId && file.progress === 1) {
+        ids.add(fileId);
+      }
+    });
+    return Array.from(ids);
+  }, [files]);
 
   const { groupsQuery } = usePromptGroupsContext();
 
@@ -240,7 +331,7 @@ const PromptForm = () => {
         makeProductionMutation.mutate({
           id: data.prompt._id,
           groupId: data.prompt.groupId,
-          productionPrompt: { prompt: data.prompt.prompt },
+          productionPrompt: { prompt: data.prompt.prompt, context_files: data.prompt.context_files },
         });
       }
 
@@ -271,22 +362,29 @@ const PromptForm = () => {
         return;
       }
 
+      const contextFileIds = extractContextFileIds();
+      const existingContext = selectedPrompt.context_files ?? [];
+      const hasSameContext =
+        contextFileIds.length === existingContext.length &&
+        contextFileIds.every((id) => existingContext.includes(id));
+
       const tempPrompt: TCreatePrompt = {
         prompt: {
           type: selectedPrompt.type ?? 'text',
           groupId: groupId,
           prompt: value,
+          context_files: contextFileIds,
         },
       };
 
-      if (value === selectedPrompt.prompt) {
+      if (value === selectedPrompt.prompt && hasSameContext) {
         return;
       }
 
       // We're adding to an existing group, so use the addPromptToGroup mutation
       addPromptToGroupMutation.mutate({ ...tempPrompt, groupId });
     },
-    [selectedPrompt, group, addPromptToGroupMutation, canEdit],
+    [selectedPrompt, group, addPromptToGroupMutation, canEdit, extractContextFileIds],
   );
 
   const handleLoadingComplete = useCallback(() => {
@@ -451,6 +549,7 @@ const PromptForm = () => {
                       setIsEditing={(value) => canEdit && setIsEditing(value)}
                     />
                     <PromptVariables promptText={promptText} />
+                    <PromptFileContext files={files} setFiles={setFiles} disabled={!canEdit} />
                     <Description
                       initialValue={group.oneliner ?? ''}
                       onValueChange={canEdit ? handleUpdateOneliner : undefined}
