@@ -1,9 +1,8 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { AttachmentIcon, Button } from '@librechat/client';
 import { EToolResources } from 'librechat-data-provider';
 import type { ExtendedFile } from '~/common';
 import FileRow from '~/components/Chat/Input/Files/FileRow';
-import { useChatContext } from '~/Providers';
 import { useFileHandling, useLocalize } from '~/hooks';
 
 type PromptFileContextProps = {
@@ -14,7 +13,7 @@ type PromptFileContextProps = {
 
 export default function PromptFileContext({ files, setFiles, disabled }: PromptFileContextProps) {
   const localize = useLocalize();
-  const { setFilesLoading } = useChatContext();
+  const [filesLoading, setFilesLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { handleFileChange } = useFileHandling({
