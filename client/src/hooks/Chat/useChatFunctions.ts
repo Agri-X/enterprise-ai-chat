@@ -159,6 +159,20 @@ export default function useChatFunctions({
         setLatestMessage(assistantMessage);
       }
 
+      // Create/update conversation first
+      await fetch('/api/convos/update', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          arg: {
+            conversationId: convoId,
+            endpoint: 'image_generation',
+            model: 'gemini-2.5-flash-image',
+            title: trimmedPrompt.slice(0, 50),
+          },
+        }),
+      });
+
       // Save messages to the database
       await fetch(`/api/messages/${convoId}`, {
         method: 'POST',
