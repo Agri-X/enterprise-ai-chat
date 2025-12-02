@@ -40,7 +40,10 @@ const sortIcon = (active, direction) => {
   );
 };
 
+import { useNavigate } from 'react-router-dom';
+
 const UsageDashboard = () => {
+  const navigate = useNavigate();
   const { user, isAuthenticated } = useAuthContext();
 
   const defaultEnd = useMemo(() => new Date(), []);
@@ -303,7 +306,11 @@ const UsageDashboard = () => {
                 </thead>
                 <tbody className="divide-y divide-border-light text-sm">
                   {rows.map((row) => (
-                    <tr key={row.userId ?? row.email} className="hover:bg-surface-secondary/60">
+                    <tr
+                      key={row.userId ?? row.email}
+                      className="cursor-pointer hover:bg-surface-secondary/60"
+                      onClick={() => navigate(`/admin/analytics/${row.userId}`)}
+                    >
                       <td className="py-3 font-medium text-text-primary">{row.name}</td>
                       <td className="py-3 text-muted-foreground">{row.email || 'N/A'}</td>
                       <td className="py-3 font-semibold text-text-primary">

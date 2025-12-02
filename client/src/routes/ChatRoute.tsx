@@ -54,6 +54,10 @@ export default function ChatRoute() {
     }
   }, [conversationId, isTemporaryChat, setIsTemporary]);
 
+  useEffect(() => {
+    hasSetConversation.current = false;
+  }, [conversationId, hasSetConversation]);
+
   /** This effect is mainly for the first conversation state change on first load of the page.
    *  Adjusting this may have unintended consequences on the conversation state.
    */
