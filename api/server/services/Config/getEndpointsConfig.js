@@ -17,12 +17,13 @@ const { getAppConfig } = require('./app');
  */
 async function getEndpointsConfig(req) {
   const cache = getLogStores(CacheKeys.CONFIG_STORE);
-  const cachedEndpointsConfig = await cache.get(CacheKeys.ENDPOINT_CONFIG);
+  const cacheKey = CacheKeys.ENDPOINT_CONFIG + '_v2';
+  const cachedEndpointsConfig = await cache.get(cacheKey);
   if (cachedEndpointsConfig) {
     return cachedEndpointsConfig;
   }
 
-  const appConfig = req.config ?? (await getAppConfig({ role: req.user?.role }));
+  const appConfig = req.config ?? (await getAppConfig({ role: req.user?.role, refresh: true }));
   const defaultEndpointsConfig = await loadDefaultEndpointsConfig(appConfig);
   const customEndpointsConfig = loadCustomEndpointsConfig(appConfig?.endpoints?.custom);
 
@@ -120,7 +121,7 @@ async function getEndpointsConfig(req) {
 
   const endpointsConfig = orderEndpointsConfig(mergedConfig);
 
-  await cache.set(CacheKeys.ENDPOINT_CONFIG, endpointsConfig);
+  await cache.set(cacheKey, endpointsConfig);
   return endpointsConfig;
 }
 
