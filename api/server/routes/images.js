@@ -91,7 +91,7 @@ const saveBase64Image = async ({ req, data, mimeType }) => {
     true,
   );
 
-  return filepath;
+  return { filepath, file_id: fileId };
 };
 
 router.post('/generate', configMiddleware, async (req, res) => {
@@ -131,7 +131,7 @@ router.post('/generate', configMiddleware, async (req, res) => {
       return res.status(502).json({ error: 'No image data returned from the model.' });
     }
 
-    const filepath = await saveBase64Image({ req, data, mimeType });
+    const { filepath, file_id } = await saveBase64Image({ req, data, mimeType });
 
     const usageMetadata = response?.usageMetadata || response?.usage_metadata;
     const promptTokens =
@@ -152,6 +152,7 @@ router.post('/generate', configMiddleware, async (req, res) => {
 
     return res.status(200).json({
       filepath,
+      file_id,
       mimeType,
       model: mappedModel,
     });

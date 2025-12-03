@@ -136,16 +136,18 @@ export default function useChatFunctions({
         throw new Error(payload?.error || 'Image generation failed.');
       }
 
-      const filepath = payload?.filepath;
+      const { filepath, file_id } = payload;
       if (!filepath) {
         throw new Error('No image URL returned from the server.');
       }
+
+      const imagePath = file_id ? `/api/files/download/${user?.id}/${file_id}` : filepath;
 
       const assistantMessage: TMessage = {
         messageId: assistantMessageId,
         conversationId: convoId,
         parentMessageId: userMessageId,
-        text: `![Image](${filepath})`,
+        text: `![Image](${imagePath})`,
         isCreatedByUser: false,
         sender: 'Gemini Image',
         endpoint: 'image_generation',
