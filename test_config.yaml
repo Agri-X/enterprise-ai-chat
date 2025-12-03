@@ -1,0 +1,19 @@
+version: 1.2.1
+cache: true
+fileStrategy: "s3"
+endpoints:
+  openAI:
+    apiKey: '${OPENAI_API_KEY}'
+    models:
+      default: ['gpt-4o']
+      fetch: false
+  google:
+    apiKey: '${GEMINI_API_KEY}'
+    models:
+      default: ['gemini-pro']
+      fetch: false
+  anthropic:
+    apiKey: '${ANTHROPIC_API_KEY}'
+    models:
+      default: ['claude-3-opus']
+      fetch: false
