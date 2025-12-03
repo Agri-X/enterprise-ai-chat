@@ -97,6 +97,27 @@ async function getEndpointsConfig(req) {
     };
   }
 
+  if (appConfig?.endpoints?.[EModelEndpoint.openAI]) {
+    mergedConfig[EModelEndpoint.openAI] = {
+      ...mergedConfig[EModelEndpoint.openAI],
+      ...appConfig.endpoints[EModelEndpoint.openAI],
+    };
+  }
+
+  if (appConfig?.endpoints?.[EModelEndpoint.google]) {
+    mergedConfig[EModelEndpoint.google] = {
+      ...mergedConfig[EModelEndpoint.google],
+      ...appConfig.endpoints[EModelEndpoint.google],
+    };
+  }
+
+  if (appConfig?.endpoints?.[EModelEndpoint.anthropic]) {
+    mergedConfig[EModelEndpoint.anthropic] = {
+      ...mergedConfig[EModelEndpoint.anthropic],
+      ...appConfig.endpoints[EModelEndpoint.anthropic],
+    };
+  }
+
   const endpointsConfig = orderEndpointsConfig(mergedConfig);
 
   await cache.set(CacheKeys.ENDPOINT_CONFIG, endpointsConfig);

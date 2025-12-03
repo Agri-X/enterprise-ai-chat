@@ -94,6 +94,7 @@ module.exports = {
 
       const messages = await getMessages({ conversationId }, '_id');
       const update = { ...convo, messages, user: req.user.id };
+      delete update._id;
 
       if (newConversationId) {
         update.conversationId = newConversationId;
