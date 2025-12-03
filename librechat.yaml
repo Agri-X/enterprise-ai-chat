@@ -226,7 +226,7 @@ endpoints:
     apiKey: '${OPENAI_API_KEY}'
     baseURL: 'https://api.openai.com/v1'
     models:
-      default: ['gpt-4o', 'gpt-4-turbo']
+      default: ['gpt-5.1', 'gpt-5-mini', 'gpt-5-nano']
       fetch: false
     titleConvo: true
     titleModel: 'current_model'
